@@ -253,6 +253,25 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 /* ============ Compatibilité anciens navigateurs (iPad / vieux Safari) ============ */
 if (window.NodeList && !NodeList.prototype.forEach) NodeList.prototype.forEach = Array.prototype.forEach;
 var HAS_POINTER = !!window.PointerEvent;
+// Vieux Safari : connect() ne renvoie rien, on le fait renvoyer la destination pour pouvoir enchaîner
+(function () {
+  var AN = window.AudioNode;
+  if (!AN || !AN.prototype.connect || AN.prototype.connect._p) return;
+  var orig = AN.prototype.connect;
+  AN.prototype.connect = function (d) {
+    var r = orig.apply(this, arguments);
+    return r === undefined ? d : r;
+  };
+  AN.prototype.connect._p = 1;
+})();
+// Affiche les erreurs à l'écran (diagnostic sur tablette)
+window.onerror = function (msg, src, line) {
+  try {
+    var el = document.getElementById('toast');
+    el.textContent = 'Erreur : ' + msg + ' (ligne ' + line + ')';
+    el.classList.add('show');
+  } catch (e) {}
+};
 function decodeAudio(arr) {
   return new Promise(function (res, rej) {
     var done = false;
@@ -816,9 +835,18 @@ var ctx = null,
 var buffers = {};
 function ensureAudio() {
   if (ctx) {
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
     return;
   }
+  $('power').classList.add('hide');
+  try {
+    buildAudio();
+  } catch (err) {
+    toast('Audio indisponible : ' + (err && err.message || err));
+    console.error(err);
+  }
+}
+function buildAudio() {
   var AC = window.AudioContext || window.webkitAudioContext;
   try {
     ctx = new AC({
@@ -875,7 +903,7 @@ function ensureAudio() {
   E.wowG = ctx.createGain();
   E.wowG.gain.value = 0.0012;
   E.wow.connect(E.wowG).connect(E.delay.delayTime);
-  E.wow.start();
+  E.wow.start(0);
   bus.connect(E.send).connect(E.delay).connect(E.hp).connect(E.lp).connect(E.sat);
   E.sat.connect(E.fb).connect(E.delay);
   E.sat.connect(E.ret).connect(out);
@@ -1014,7 +1042,7 @@ function playSample(p) {
   var g = ctx.createGain();
   g.gain.value = 0.9;
   s.connect(g).connect(bus);
-  s.start();
+  s.start(0);
   return buf.duration / s.playbackRate.value;
 }
 
