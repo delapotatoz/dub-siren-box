@@ -638,6 +638,24 @@ var SLOTS = [{
   code: 'KeyD',
   c: 'green',
   lib: 'twotone'
+}, {
+  id: 'p7',
+  key: '7',
+  code: 'KeyZ',
+  c: 'red',
+  lib: 'v_yaman'
+}, {
+  id: 'p8',
+  key: '8',
+  code: 'KeyX',
+  c: 'gold',
+  lib: 'v_yesjah'
+}, {
+  id: 'p9',
+  key: '9',
+  code: 'KeyC',
+  c: 'green',
+  lib: 'bomb'
 }];
 // Lettres affichées : AZERTY par défaut pour un navigateur en français, sinon QWERTY ; ajusté par la disposition réelle si le navigateur la donne
 var isFr = (navigator.language || '').toLowerCase().startsWith('fr');
@@ -647,14 +665,20 @@ var FALLBACK = isFr ? {
   KeyE: 'E',
   KeyA: 'Q',
   KeyS: 'S',
-  KeyD: 'D'
+  KeyD: 'D',
+  KeyZ: 'W',
+  KeyX: 'X',
+  KeyC: 'C'
 } : {
   KeyQ: 'Q',
   KeyW: 'W',
   KeyE: 'E',
   KeyA: 'A',
   KeyS: 'S',
-  KeyD: 'D'
+  KeyD: 'D',
+  KeyZ: 'Z',
+  KeyX: 'X',
+  KeyC: 'C'
 };
 SLOTS.forEach(function (s) {
   return s.letter = FALLBACK[s.code];
@@ -1732,7 +1756,7 @@ if (navigator.keyboard && navigator.keyboard.getLayoutMap) {
   }).catch(function () {});
 }
 function renderKeysHint() {
-  $('keysHint').innerHTML = 'Jouer les pads : chiffres <kbd>1</kbd>–<kbd>6</kbd> (pavé numérique aussi) ou lettres ' + SLOTS.map(function (s) {
+  $('keysHint').innerHTML = 'Jouer les pads : chiffres <kbd>1</kbd>–<kbd>9</kbd> (pavé numérique aussi) ou lettres ' + SLOTS.map(function (s) {
     return '<kbd>' + s.letter + '</kbd>';
   }).join('');
 }
